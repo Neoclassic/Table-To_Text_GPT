@@ -41,6 +41,10 @@ if __name__ == '__main__':
     parser.add_argument('--do_rl', default=False, action="store_true", help="whether to train or test the model")
     parser.add_argument('--do_val', default=False, action="store_true", help="whether to train or test the model")
     parser.add_argument('--do_test', default=False, action="store_true", help="whether to compute the BLEU scores on test split")
+    parser.add_argument('--csv_path', default=False, action="store_true", help="whether to compute the BLEU scores on test split")
+    parser.add_argument('--do_test_once', default=False, action="store_true", help="whether to compute the BLEU scores on test split")
+    parser.add_argument('--csv_path', default=False, action="store_true", help="whether to compute the BLEU scores on test split")
+    parser.add_argument('--title', default=False, action="store_true", help="whether to compute the BLEU scores on test split")
     parser.add_argument('--do_test_challenge', default=False, action="store_true", help="whether to compute the BLEU scores on challenge split")
     parser.add_argument('--do_ppl', default=False, action="store_true", help="whether to compute perplexity of the model")
     parser.add_argument('--do_verify', default=False, action="store_true", help="whether compute the adv-acc score on test split")
@@ -257,6 +261,50 @@ if __name__ == '__main__':
             print("total corpus BLEU score = {}/{}/{}".format(bleu_1, bleu_2, bleu_3))
 
         with open('outputs/GPT_{}_{}.json'.format(args.model, bleu_3), 'w') as f:
+            json.dump(results, f, indent=2)
+
+    if args.do_test_once:
+
+        title=args.title
+        dummy_json={}
+        dummy_json[args.csv_path]=["ABC",[],title,"ABC"]
+        fh=open("data/run_lm.json")
+        fh.write(str(dummy_json))
+        fh.close()
+
+
+        dataset = GPTTableDatabase(None, None, 'data/run_lm.json', tokenizer, args.batch_size, args.max_len)
+        model.load_state_dict(torch.load(args.load_from),strict=False)
+        model.eval()
+
+        sent_bleus_1 = []
+        sent_bleus_2 = []
+        sent_bleus_3 = []
+
+        results = {}
+        with torch.no_grad():
+            for idx in range(0, min(args.decode_first_K, dataset.test_len())):
+                batch = dataset.get_data(idx, 'test')
+                references = dataset.get_reference(idx, 'test')
+                table_id = dataset.get_table_id(idx, 'test')
+                results[table_id] = []
+
+                batch = tuple(Variable(t).to(device) for t in batch)
+                trg_inp, trg_out, mask, caption = batch
+
+                fake_inputs = caption
+
+                samples = sample_sequence(model, 30, fake_inputs, [], top_k=1)
+
+                samples = samples[:, caption.shape[1]:]
+                samples = samples.cpu().data.numpy()
+
+                for s in samples:
+                    text = tokenizer.decode(s, clean_up_tokenization_spaces=True)
+                    text = text[: text.find(tokenizer.eos_token)]
+                    results[table_id].append(text)
+      
+        with open('outputs/GPT_{}_{}.json'.format(args.model, "hackathon"), 'w') as f:
             json.dump(results, f, indent=2)
 
     if args.do_test_challenge:
