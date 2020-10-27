@@ -96,7 +96,7 @@ class GPTTableDatabase(Dataloader):
             tmp = ""
             for i in range(len(d)):
                 tmp += 'In row {} , '.format(i + 1)
-                for _ in e[1]:
+                for _ in random.sample(range(d.shape[1]),3):
                     if isinstance(d.iloc[i][columns[_]], str):
                         entity = map(lambda x: x.capitalize(), d.iloc[i][columns[_]].split(' '))
                         entity = ' '.join(entity)
