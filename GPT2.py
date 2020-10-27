@@ -41,10 +41,9 @@ if __name__ == '__main__':
     parser.add_argument('--do_rl', default=False, action="store_true", help="whether to train or test the model")
     parser.add_argument('--do_val', default=False, action="store_true", help="whether to train or test the model")
     parser.add_argument('--do_test', default=False, action="store_true", help="whether to compute the BLEU scores on test split")
-    parser.add_argument('--csv_path', default=False, action="store_true", help="whether to compute the BLEU scores on test split")
+    parser.add_argument('--csv_path', type=str, help="whether to compute the BLEU scores on test split")
     parser.add_argument('--do_test_once', default=False, action="store_true", help="whether to compute the BLEU scores on test split")
-    parser.add_argument('--csv_path', default=False, action="store_true", help="whether to compute the BLEU scores on test split")
-    parser.add_argument('--title', default=False, action="store_true", help="whether to compute the BLEU scores on test split")
+    parser.add_argument('--title', type=str, help="whether to compute the BLEU scores on test split")
     parser.add_argument('--do_test_challenge', default=False, action="store_true", help="whether to compute the BLEU scores on challenge split")
     parser.add_argument('--do_ppl', default=False, action="store_true", help="whether to compute perplexity of the model")
     parser.add_argument('--do_verify', default=False, action="store_true", help="whether compute the adv-acc score on test split")
@@ -267,8 +266,8 @@ if __name__ == '__main__':
 
         title=args.title
         dummy_json={}
-        dummy_json[args.csv_path]=["ABC",[],title,"ABC"]
-        fh=open("data/run_lm.json")
+        dummy_json[args.csv_path]=[["ABC",[],title,"ABC"]]*10
+        fh=open("data/run_lm.json","w")
         fh.write(str(dummy_json))
         fh.close()
 
