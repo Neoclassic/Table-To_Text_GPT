@@ -210,7 +210,7 @@ if __name__ == '__main__':
 
     if args.do_test:
         dataset = GPTTableDatabase(None, None, 'data/test_lm.json', tokenizer, args.batch_size, args.max_len)
-        model.load_state_dict(torch.load(args.load_from))
+        model.load_state_dict(torch.load(args.load_from),strict=False)
         model.eval()
 
         sent_bleus_1 = []
